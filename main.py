@@ -22,17 +22,22 @@ from artemisbot.handlers.message_handlers import (
     welcome_message,
     command_handler
 )
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(
-    level=getattr(logging, LOG_LEVEL),
-    format=LOG_FORMAT,
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler(LOG_FILE)
-    ]
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+
+# Get bot token from environment variable
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+if not TELEGRAM_BOT_TOKEN:
+    raise ValueError("TELEGRAM_BOT_TOKEN not set in environment variables")
 
 def check_environment():
     """Check if all required environment variables and directories are set up correctly."""
@@ -112,16 +117,16 @@ def main():
     try:
         logger.info("Creating Telegram application...")
         # Create the Application
-        application = Application.builder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
+        application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
         
         logger.info("Adding handlers...")
         # Add handlers
-        application.add_handler(CommandHandler("start", command_handler))
-        application.add_handler(CommandHandler("help", command_handler))
+        application.add_handler(CommandHandler("start", welcome_message))
+        application.add_handler(CommandHandler("help", help_command))
         # Handle private messages
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_message))
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
         # Handle group messages that start with =art
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS & filters.Regex(r'^=art\s'), handle_group_message))
+        application.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.TEXT & ~filters.COMMAND, handle_group_message))
         # Handle new chat members (for welcome message)
         application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_message))
         
