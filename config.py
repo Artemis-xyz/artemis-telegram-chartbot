@@ -1,7 +1,7 @@
 """Configuration settings and constants for the Artemis Telegram Bot."""
 
 import os
-from typing import Dict, Any, Final
+from typing import Dict, Any
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -10,23 +10,20 @@ load_dotenv()
 # Bot configuration
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 ARTEMIS_API_KEY = os.getenv("ARTEMIS_API_KEY")
+BOT_USERNAME = "@artemis_chartbot"
 
 # Logging configuration
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-LOG_FILE = "logs/artemisbot.log"
+LOG_FILE = os.getenv("LOG_FILE", "logs/artemisbot.log")
 
 # Chart configuration
-CHART_TIMEOUT = 10  # seconds
+CHART_TIMEOUT = int(os.getenv("CHART_TIMEOUT", "10"))  # seconds
 CHART_WINDOW_SIZE = (1920, 1080)
-CHART_RENDER_DELAY = 2  # seconds
+CHART_RENDER_DELAY = int(os.getenv("CHART_RENDER_DELAY", "2"))  # seconds
 
 # Asset configuration
-ASSET_MAPPINGS_FILE = "config/artemis_mappings.json"
-
-# Bot configuration
-TOKEN: Final = os.getenv("TELEGRAM_TOKEN")
-BOT_USERNAME: Final = "@artemis_chartbot"
+ASSET_MAPPINGS_FILE = os.getenv("ASSET_MAPPINGS_FILE", "config/artemis_mappings.json")
 
 # Artemis URL constants
 BASE_URL = "https://app.artemis.xyz/chart-builder/"
@@ -88,4 +85,4 @@ METRIC_MAP: Dict[str, str] = {
 }
 
 # Selenium configuration
-SELENIUM_TIMEOUT = 30  # seconds
+SELENIUM_TIMEOUT = int(os.getenv("SELENIUM_TIMEOUT", "30"))  # seconds

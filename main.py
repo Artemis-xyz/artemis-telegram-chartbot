@@ -10,38 +10,90 @@ Example: fees ethereum eth chain 1w 1d
 
 import os
 import sys
-from dotenv import load_dotenv
-
-# Load environment variables first
-print("Loading environment variables...")
-load_dotenv()
-
-# Print current working directory and .env file location
-print(f"Current working directory: {os.getcwd()}")
-print(f"Looking for .env file in: {os.path.join(os.getcwd(), '.env')}")
-
-# Verify required environment variables
-required_vars = ['TELEGRAM_BOT_TOKEN', 'ARTEMIS_API_KEY']
-missing_vars = [var for var in required_vars if not os.getenv(var)]
-if missing_vars:
-    print(f"Error: Missing required environment variables: {', '.join(missing_vars)}")
-    print("Please ensure these are set in your .env file")
-    sys.exit(1)
-
-print("Environment variables loaded successfully")
-
 import signal
+import logging
+from pathlib import Path
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
-from artemisbot.handlers.message_handlers import handle_message, handle_group_message, help_command
+from config import LOG_LEVEL, LOG_FORMAT, LOG_FILE
+from artemisbot.handlers.message_handlers import (
+    help_command,
+    handle_message,
+    handle_group_message,
+    welcome_message,
+    command_handler
+)
+
+# Configure logging
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL),
+    format=LOG_FORMAT,
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler(LOG_FILE)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+def check_environment():
+    """Check if all required environment variables and directories are set up correctly."""
+    # Print current working directory and .env file location
+    logger.info(f"Current working directory: {os.getcwd()}")
+    env_path = os.path.join(os.getcwd(), '.env')
+    logger.info(f"Looking for .env file in: {env_path}")
+
+    # Check if .env file exists
+    if not os.path.exists(env_path):
+        logger.error("❌ .env file not found!")
+        logger.error("Please create a .env file in the project root with the following variables:")
+        logger.error("TELEGRAM_BOT_TOKEN=your_telegram_bot_token")
+        logger.error("ARTEMIS_API_KEY=your_artemis_api_key")
+        return False
+
+    # Verify required environment variables
+    required_vars = ['TELEGRAM_BOT_TOKEN', 'ARTEMIS_API_KEY']
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    
+    if missing_vars:
+        logger.error(f"❌ Missing required environment variables: {', '.join(missing_vars)}")
+        logger.error("Please ensure these are set in your .env file")
+        return False
+
+    # Check if logs directory exists
+    logs_dir = Path('logs')
+    if not logs_dir.exists():
+        logger.info("Creating logs directory...")
+        logs_dir.mkdir(exist_ok=True)
+
+    # Check if config directory exists
+    config_dir = Path('config')
+    if not config_dir.exists():
+        logger.error("❌ Config directory not found!")
+        logger.error("Please ensure the config directory exists with required configuration files")
+        return False
+
+    # Check if artemis_mappings.json exists
+    mappings_file = config_dir / 'artemis_mappings.json'
+    if not mappings_file.exists():
+        logger.error("❌ artemis_mappings.json not found in config directory!")
+        logger.error("Please ensure the config/artemis_mappings.json file exists")
+        return False
+
+    logger.info("✅ Environment check passed successfully")
+    return True
 
 def signal_handler(signum, frame):
     """Handle shutdown signals."""
-    print("Received shutdown signal")
+    logger.info("Received shutdown signal")
     sys.exit(0)
 
 def main():
     """Start the bot."""
-    print("Initializing bot...")
+    logger.info("Initializing bot...")
+    
+    # Check environment first
+    if not check_environment():
+        logger.error("❌ Environment check failed. Please fix the issues above and try again.")
+        sys.exit(1)
     
     # Register signal handlers
     signal.signal(signal.SIGINT, signal_handler)
@@ -50,33 +102,42 @@ def main():
     # Create lock file
     lock_file = "/tmp/artemis_telegram_bot.lock"
     if os.path.exists(lock_file):
-        print("Another instance is already running")
+        logger.error("❌ Another instance is already running")
+        logger.error("If this is incorrect, please remove the lock file: " + lock_file)
         sys.exit(1)
         
     with open(lock_file, "w") as f:
         f.write(str(os.getpid()))
     
     try:
-        print("Creating Telegram application...")
+        logger.info("Creating Telegram application...")
         # Create the Application
         application = Application.builder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
         
-        print("Adding handlers...")
+        logger.info("Adding handlers...")
         # Add handlers
-        application.add_handler(CommandHandler("help", help_command))
+        application.add_handler(CommandHandler("start", command_handler))
+        application.add_handler(CommandHandler("help", command_handler))
         # Handle private messages
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_message))
         # Handle group messages that start with =art
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.GROUPS & filters.Regex(r'^=art\s'), handle_group_message))
+        # Handle new chat members (for welcome message)
+        application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_message))
         
         # Start the bot
-        print("Starting bot...")
+        logger.info("Starting bot...")
         application.run_polling()
         
     except Exception as e:
-        print(f"Error starting bot: {str(e)}")
+        logger.error(f"❌ Error starting bot: {str(e)}")
+        logger.error("Please check the following:")
+        logger.error("1. Your TELEGRAM_BOT_TOKEN is valid")
+        logger.error("2. You have an active internet connection")
+        logger.error("3. The bot has been added to your group (if using group features)")
         import traceback
-        traceback.print_exc()
+        logger.error("Full error traceback:")
+        logger.error(traceback.format_exc())
         sys.exit(1)
         
     finally:

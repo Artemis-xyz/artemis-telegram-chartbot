@@ -4,6 +4,7 @@ from telegram.ext import ContextTypes
 from artemisbot.utils.command_parser import parse_command
 from artemisbot.chart.chart_generator import ChartGenerator
 import logging
+from config import BOT_USERNAME
 
 # Initialize ChartGenerator
 chart_generator = ChartGenerator()
@@ -264,24 +265,52 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    Handle the /help command - provide detailed instructions.
-    
-    Args:
-        update: Telegram update
-        context: CallbackContext
-    """
-    await update.message.reply_text(
-        "📊 Artemis Analytics Chart Bot\n\n"
-        "Format: <metric> [vs <metric>] <asset> <time_period> <granularity> [%]\n\n"
-        "Examples:\n"
-        "• price solana 1w 1d\n"
-        "• fees ethereum 3m 1d\n"
-        "• price vs tvl solana 1y 1d\n"
-        "• fees vs revenue ethereum 6m 1w %\n\n"
-        "Metrics: price, volume, tvl, fees, revenue, mc, tx, fc\n"
-        "Time Periods: 1w, mtd, 1m, 3m, 6m, ytd, 1y, all\n"
-        "Granularity: 1d, 1w, 1m\n\n"
-        "In group chats, start with '=art '",
-        parse_mode='Markdown'
-    )
+    """Send a message when the command /help is issued."""
+    help_text = f"""
+🤖 *Artemis Chart Bot Help*
+
+*Basic Commands:*
+• `/help` - Show this help message
+
+*Chart Commands:*
+Format: `<metric> <asset> <time_period> <granularity> [%]`
+
+*Examples:*
+• `price solana 1w 1d` - Daily Solana price for the last week
+• `fees ethereum 3m 1d` - Daily Ethereum fees for the last 3 months
+• `tvl bitcoin 1y 1w %` - Weekly Bitcoin TVL as percentage for the last year
+
+*Available Metrics:*
+• `price` - Price charts
+• `volume` - Trading volume
+• `tvl` - Total Value Locked
+• `fees` - Protocol fees
+• `revenue` - Revenue
+• `mc` - Market cap
+• `txns` - Transaction count
+• `daa` - Daily Active Addresses
+• `dau` - Daily Active Users
+• `fdmc` - Fully Diluted Market Cap
+
+*Time Periods:*
+• `1w` - 1 week
+• `mtd` - Month to date
+• `1m` - 1 month
+• `3m` - 3 months
+• `6m` - 6 months
+• `ytd` - Year to date
+• `1y` - 1 year
+• `all` - All time
+
+*Granularity:*
+• `1d` - Daily
+• `1w` - Weekly
+• `1m` - Monthly
+
+*Group Chat Usage:*
+In group chats, start your command with `=art`:
+`=art price solana 1m 1d`
+
+For more information, visit our [GitHub repository](https://github.com/YOUR_USERNAME/artemis-telegram-chartbot).
+"""
+    await update.message.reply_text(help_text, parse_mode='Markdown')
