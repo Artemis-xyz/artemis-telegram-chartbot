@@ -109,10 +109,18 @@ def main():
         # Add handlers
         application.add_handler(CommandHandler("start", welcome_message))
         application.add_handler(CommandHandler("help", help_command))
+        
         # Handle private messages
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+        application.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, handle_message))
+        
         # Handle group messages that start with =art
-        application.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.TEXT & ~filters.COMMAND, handle_group_message))
+        application.add_handler(MessageHandler(
+            filters.ChatType.GROUPS & 
+            filters.TEXT & 
+            ~filters.COMMAND, 
+            handle_group_message
+        ))
+        
         # Handle new chat members (for welcome message)
         application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_message))
         
