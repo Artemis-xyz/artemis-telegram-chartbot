@@ -10,7 +10,7 @@ load_dotenv()
 # Bot configuration
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 ARTEMIS_API_KEY = os.getenv("ARTEMIS_API_KEY")
-BOT_USERNAME = "@artemis_chartbot"
+BOT_USERNAME = os.getenv("BOT_USERNAME", "@artemis_chartbot")
 
 # Logging configuration
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

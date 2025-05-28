@@ -24,7 +24,7 @@
 - 📰 CryptoPanic API Key (for news feature)
 - 🧠 OpenAI API Key (for news analysis)
 
-### Installation
+### Local Development Setup
 
 1. Clone the repository:
 ```bash
@@ -32,18 +32,39 @@ git clone https://github.com/Artemis-xyz/artemis-telegram-chartbot.git
 cd artemis-telegram-chartbot
 ```
 
-2. Install dependencies:
+2. Create and activate a virtual environment (recommended):
+```bash
+# On macOS/Linux
+python -m venv venv
+source venv/bin/activate
+
+# On Windows
+python -m venv venv
+.\venv\Scripts\activate
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Set up environment variables:
+4. Set up environment variables:
 ```bash
 # Copy the example environment file
 cp .env.example .env
 
 # Edit .env with your API keys and settings
 nano .env  # or use your preferred text editor
+```
+
+5. Configure your bot:
+   - Get a bot token from [@BotFather](https://t.me/BotFather)
+   - Set your bot's username in the `.env` file (e.g., `BOT_USERNAME=@my_chartbot`)
+   - Add your API keys for Artemis, CryptoPanic, and OpenAI
+
+6. Run the bot locally:
+```bash
+python3 main.py
 ```
 
 #### Required Environment Variables
@@ -53,18 +74,16 @@ nano .env  # or use your preferred text editor
 | `ARTEMIS_API_KEY` | Your Artemis Analytics API key | [Artemis Analytics](https://artemis.xyz) |
 | `CRYPTOPANIC_API_KEY` | Your CryptoPanic API key | [CryptoPanic](https://cryptopanic.com/developers/api/) |
 | `OPENAI_API_KEY` | Your OpenAI API key | [OpenAI Platform](https://platform.openai.com/api-keys) |
+| `BOT_USERNAME` | Your bot's username (e.g., @my_chartbot) | [@BotFather](https://t.me/BotFather) |
 
 #### Optional Environment Variables
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `DEBUG` | Enable debug logging | `false` |
 | `LOG_LEVEL` | Set the log level | `INFO` |
-
-### Running Locally
-
-```bash
-python main.py
-```
+| `CHART_TIMEOUT` | Chart generation timeout in seconds | `10` |
+| `CHART_RENDER_DELAY` | Delay before chart render in seconds | `2` |
+| `SELENIUM_TIMEOUT` | Selenium timeout in seconds | `30` |
 
 ### 🚀 Deploying to Heroku
 
@@ -79,6 +98,7 @@ heroku config:set TELEGRAM_BOT_TOKEN=your_token
 heroku config:set ARTEMIS_API_KEY=your_key
 heroku config:set CRYPTOPANIC_API_KEY=your_key
 heroku config:set OPENAI_API_KEY=your_key
+heroku config:set BOT_USERNAME=@your_bot_username
 ```
 
 3. Deploy to Heroku:
