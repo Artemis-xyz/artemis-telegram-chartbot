@@ -45,8 +45,12 @@ def check_environment():
     env_path = os.path.join(os.getcwd(), '.env')
     logger.info(f"Looking for .env file in: {env_path}")
 
-    # Check if .env file exists
-    if not os.path.exists(env_path):
+    # Check if we're running on Heroku
+    is_heroku = os.environ.get('DYNO') is not None
+    logger.info(f"Running on Heroku: {is_heroku}")
+
+    # Only check for .env file in local development
+    if not is_heroku and not os.path.exists(env_path):
         logger.error("❌ .env file not found!")
         logger.error("Please create a .env file in the project root with the following variables:")
         logger.error("TELEGRAM_BOT_TOKEN=your_telegram_bot_token")
@@ -59,7 +63,10 @@ def check_environment():
     
     if missing_vars:
         logger.error(f"❌ Missing required environment variables: {', '.join(missing_vars)}")
-        logger.error("Please ensure these are set in your .env file")
+        if is_heroku:
+            logger.error("Please set these variables in your Heroku config vars")
+        else:
+            logger.error("Please ensure these are set in your .env file")
         return False
 
     # Check if config directory exists
