@@ -24,6 +24,7 @@ A Telegram bot that generates charts and provides market news summaries using th
    TELEGRAM_BOT_TOKEN=your_telegram_bot_token
    ARTEMIS_API_KEY=your_artemis_api_key
    OPENAI_API_KEY=your_openai_api_key
+   CRYPTOPANIC_API_KEY=your_cryptopanic_api_key
    ```
 
 4. Run the bot:
