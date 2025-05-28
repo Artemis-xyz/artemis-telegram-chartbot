@@ -39,51 +39,47 @@ if not TELEGRAM_BOT_TOKEN:
     raise ValueError("TELEGRAM_BOT_TOKEN not set in environment variables")
 
 def check_environment():
-    """Check if all required environment variables and directories are set up correctly."""
-    # Print current working directory and .env file location
-    logger.info(f"Current working directory: {os.getcwd()}")
-    env_path = os.path.join(os.getcwd(), '.env')
-    logger.info(f"Looking for .env file in: {env_path}")
-
+    """Check if all required environment variables and files are present."""
+    logger.info("Current working directory: %s", os.getcwd())
+    
     # Check if we're running on Heroku
-    is_heroku = os.environ.get('DYNO') is not None
-    logger.info(f"Running on Heroku: {is_heroku}")
-
-    # Only check for .env file in local development
-    if not is_heroku and not os.path.exists(env_path):
-        logger.error("❌ .env file not found!")
-        logger.error("Please create a .env file in the project root with the following variables:")
-        logger.error("TELEGRAM_BOT_TOKEN=your_telegram_bot_token")
-        logger.error("ARTEMIS_API_KEY=your_artemis_api_key")
-        return False
-
-    # Verify required environment variables
+    is_heroku = 'DYNO' in os.environ
+    logger.info("Running on Heroku: %s", is_heroku)
+    
+    if not is_heroku:
+        # Only check for .env file in local development
+        env_path = os.path.join(os.getcwd(), '.env')
+        logger.info("Looking for .env file in: %s", env_path)
+        if not os.path.exists(env_path):
+            logger.error("❌ .env file not found!")
+            logger.error("Please create a .env file with the required environment variables.")
+            return False
+    
+    # Check required environment variables
     required_vars = ['TELEGRAM_BOT_TOKEN', 'ARTEMIS_API_KEY']
     missing_vars = [var for var in required_vars if not os.getenv(var)]
     
     if missing_vars:
-        logger.error(f"❌ Missing required environment variables: {', '.join(missing_vars)}")
+        logger.error("❌ Missing required environment variables: %s", ', '.join(missing_vars))
         if is_heroku:
-            logger.error("Please set these variables in your Heroku config vars")
+            logger.error("Please set these variables in your Heroku config vars.")
         else:
-            logger.error("Please ensure these are set in your .env file")
+            logger.error("Please add these variables to your .env file.")
         return False
-
-    # Check if config directory exists
-    config_dir = Path('config')
-    if not config_dir.exists():
-        logger.error("❌ Config directory not found!")
-        logger.error("Please ensure the config directory exists with required configuration files")
+    
+    # Check config directory and artemis_mappings.json
+    config_dir = os.path.join(os.getcwd(), 'config')
+    mappings_file = os.path.join(config_dir, 'artemis_mappings.json')
+    
+    if not os.path.exists(config_dir):
+        logger.error("❌ config directory not found!")
         return False
-
-    # Check if artemis_mappings.json exists
-    mappings_file = config_dir / 'artemis_mappings.json'
-    if not mappings_file.exists():
+        
+    if not os.path.exists(mappings_file):
         logger.error("❌ artemis_mappings.json not found in config directory!")
-        logger.error("Please ensure the config/artemis_mappings.json file exists")
         return False
-
-    logger.info("✅ Environment check passed successfully")
+    
+    logger.info("✅ Environment check passed!")
     return True
 
 def signal_handler(signum, frame):
