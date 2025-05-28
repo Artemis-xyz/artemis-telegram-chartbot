@@ -18,8 +18,13 @@ logger.info(f"CRYPTOPANIC_API_KEY present: {bool(CRYPTOPANIC_API_KEY)}")
 
 # Load artemis_mappings.json
 mappings_path = os.path.join(os.path.dirname(__file__), '..', '..', 'config', 'artemis_mappings.json')
-with open(mappings_path, 'r') as f:
-    artemis_mappings = json.load(f)
+try:
+    with open(mappings_path, 'r') as f:
+        artemis_mappings = json.load(f)
+    logger.info(f"Successfully loaded artemis_mappings.json with {len(artemis_mappings)} entries")
+except Exception as e:
+    logger.error(f"Error loading artemis_mappings.json: {str(e)}")
+    artemis_mappings = {}
 
 class NewsAnalyzer:
     def __init__(self):
@@ -83,6 +88,7 @@ class NewsAnalyzer:
         if asset:
             # Check artemis_mappings.json for the asset symbol or artemis_id
             asset_symbol = artemis_mappings.get(asset.lower(), asset.lower())
+            logger.info(f"Using asset symbol: {asset_symbol}")
             headlines = await self.fetch_today_news(asset_symbol)
         else:
             headlines = await self.fetch_today_news()
