@@ -93,34 +93,36 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle messages in group chats."""
-    print(f"Received group message: {update.message.text}")  # Debug log
+    logger = logging.getLogger(__name__)
+    logger.info(f"Received group message: {update.message.text}")
     
     # Only process messages that start with '=art'
     if not update.message.text or not update.message.text.strip().startswith('=art'):
-        print("Message doesn't start with =art, ignoring")  # Debug log
+        logger.info("Message doesn't start with =art, ignoring")
         return
         
     # Remove the '=art' prefix and process the command
     command_text = update.message.text[4:].strip()
     if not command_text:
-        print("Empty command after =art, ignoring")  # Debug log
+        logger.info("Empty command after =art, ignoring")
         return
         
-    print(f"Processing command: {command_text}")  # Debug log
+    logger.info(f"Processing command: {command_text}")
     parts = command_text.split()
     if len(parts) < 1:
-        print("Command too short, ignoring")  # Debug log
+        logger.info("Command too short, ignoring")
         return
 
     # Handle news command
     if parts[0].lower() == 'news':
+        logger.info("Processing news command")
         await handle_news_command(update, context, parts[1:] if len(parts) > 1 else [])
         return
         
     # Only process messages that start with a valid metric
     valid_metrics = ["price", "volume", "tvl", "fees", "revenue", "mc", "txns", "daa", "dau", "fdmc"]
     if parts[0].lower() not in valid_metrics:
-        print(f"Invalid metric: {parts[0]}")  # Debug log
+        logger.info(f"Invalid metric: {parts[0]}")
         return
         
     try:
@@ -130,7 +132,7 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
             update, context, metrics, tickers_raw, asset_type, time_period, granularity, is_percentage, is_group=True
         )
     except ValueError as e:
-        print(f"Error processing command: {str(e)}")  # Debug log
+        logger.error(f"Error processing command: {str(e)}")
         await update.message.reply_text(
             f"Error: {str(e)}\n\n"
             f"Format: =art <metric> [vs <metric>] <asset> <time_period> <granularity> [%]\n"

@@ -6,6 +6,7 @@ import httpx
 from datetime import datetime
 import json
 from dotenv import load_dotenv
+from pathlib import Path
 
 load_dotenv()
 
@@ -16,9 +17,13 @@ CRYPTOPANIC_API_URL = 'https://cryptopanic.com/api/v1/posts/?public=true'
 
 logger.info(f"CRYPTOPANIC_API_KEY present: {bool(CRYPTOPANIC_API_KEY)}")
 
-# Load artemis_mappings.json
-mappings_path = os.path.join(os.path.dirname(__file__), '..', '..', 'config', 'artemis_mappings.json')
+# Load artemis_mappings.json using absolute path
 try:
+    # Get the absolute path to the project root
+    project_root = Path(__file__).parent.parent.parent
+    mappings_path = project_root / 'config' / 'artemis_mappings.json'
+    logger.info(f"Looking for artemis_mappings.json at: {mappings_path}")
+    
     with open(mappings_path, 'r') as f:
         artemis_mappings = json.load(f)
     logger.info(f"Successfully loaded artemis_mappings.json with {len(artemis_mappings)} entries")
