@@ -94,7 +94,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle messages in group chats."""
     logger = logging.getLogger(__name__)
-    logger.info(f"Received group message: {update.message.text}")
+    logger.info("=== Group Message Handler ===")
+    logger.info(f"Chat ID: {update.effective_chat.id}")
+    logger.info(f"Message text: {update.message.text}")
+    logger.info(f"Message type: {update.message.chat.type}")
     
     # Only process messages that start with '=art'
     if not update.message.text or not update.message.text.strip().startswith('=art'):
@@ -116,7 +119,12 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
     # Handle news command
     if parts[0].lower() == 'news':
         logger.info("Processing news command")
-        await handle_news_command(update, context, parts[1:] if len(parts) > 1 else [])
+        try:
+            await handle_news_command(update, context, parts[1:] if len(parts) > 1 else [])
+            logger.info("News command processed successfully")
+        except Exception as e:
+            logger.error(f"Error processing news command: {str(e)}")
+            await update.message.reply_text(f"❌ Error processing news command: {str(e)}")
         return
         
     # Only process messages that start with a valid metric
