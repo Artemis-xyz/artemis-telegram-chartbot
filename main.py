@@ -14,7 +14,6 @@ import signal
 import logging
 from pathlib import Path
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
-from config import LOG_LEVEL, LOG_FORMAT, LOG_FILE
 from artemisbot.handlers.message_handlers import (
     help_command,
     handle_message,
@@ -63,12 +62,6 @@ def check_environment():
         logger.error("Please ensure these are set in your .env file")
         return False
 
-    # Check if logs directory exists
-    logs_dir = Path('logs')
-    if not logs_dir.exists():
-        logger.info("Creating logs directory...")
-        logs_dir.mkdir(exist_ok=True)
-
     # Check if config directory exists
     config_dir = Path('config')
     if not config_dir.exists():
@@ -104,16 +97,6 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
     
-    # Create lock file
-    lock_file = "/tmp/artemis_telegram_bot.lock"
-    if os.path.exists(lock_file):
-        logger.error("❌ Another instance is already running")
-        logger.error("If this is incorrect, please remove the lock file: " + lock_file)
-        sys.exit(1)
-        
-    with open(lock_file, "w") as f:
-        f.write(str(os.getpid()))
-    
     try:
         logger.info("Creating Telegram application...")
         # Create the Application
@@ -144,11 +127,6 @@ def main():
         logger.error("Full error traceback:")
         logger.error(traceback.format_exc())
         sys.exit(1)
-        
-    finally:
-        # Clean up lock file
-        if os.path.exists(lock_file):
-            os.remove(lock_file)
 
 if __name__ == "__main__":
     main()
